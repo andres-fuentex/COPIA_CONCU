@@ -1164,6 +1164,11 @@ if st.session_state.step == 5:
         except Exception as e:
             html_mapa = f"<div style='padding:20px; background:#f0f0f0;'>Mapa no disponible ({str(e)})</div>"
     
+    # Generar marca de tiempo actual
+    from datetime import datetime
+    ahora = datetime.now()
+    fecha_reporte = ahora.strftime("%d/%m/%Y %H:%M") 
+
     # PLANTILLA HTML MEJORADA CON LEYENDA DE COLORES
     html_report = f"""
     <!DOCTYPE html>
@@ -1249,7 +1254,7 @@ if st.session_state.step == 5:
         </div>
         
         <div style="text-align: center; margin-top: 30px; color: #999; font-size: 11px;">
-            Reporte generado automáticamente con Datos Abiertos de Bogotá | 28/11/2025
+            Reporte generado automáticamente con Datos Abiertos de Bogotá | {fecha_reporte}
         </div>
     </body>
     </html>
