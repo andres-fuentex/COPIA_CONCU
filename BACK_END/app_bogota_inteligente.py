@@ -1227,8 +1227,8 @@ if st.session_state.step == 5:
                     <th><span class="dot" style="background-color: #9625C7;"></span>COLEGIOS</th>
                     <th><span class="dot" style="background-color: #178B27;"></span>PARQUES</th>
                     <th><span class="dot" style="background-color: #3A07F3;"></span>SALUD</th>
-                    <th><span class="dot" style="background-color: #95A5A6;"></span>ESTRATO</th>
-                    <th><span class="dot" style="background-color: #95A5A6;"></span>USO POT</th>
+                    <th><span class="dot" style="background-color: #95A5A6;"></span>MODA ESTRATO</th>
+                    <th><span class="dot" style="background-color: #95A5A6;"></span>MODA USO POT</th>
                 </tr>
                 <tr>
                     <td>{num_tm}</td>
