@@ -887,7 +887,7 @@ elif st.session_state.step == 5:
             mapbox_zoom=14, margin={"r":0,"t":0,"l":0,"b":0}, height=350, showlegend=True,
             legend=dict(orientation="h", y=1.1)
         )
-        st.plotly_chart(fig_s, use_container_width=True)
+        st.plotly_chart(fig_s, use_container_width=True, key="mapa_salud_unico")
 
     with col_data_salud:
         cant_s = len(salud_zona)
@@ -943,7 +943,7 @@ elif st.session_state.step == 5:
             mapbox_zoom=14, margin={"r":0,"t":0,"l":0,"b":0}, height=350, showlegend=True,
             legend=dict(orientation="h", y=1.1)
         )
-        st.plotly_chart(fig_v, use_container_width=True)
+        st.plotly_chart(fig_v, use_container_width=True, key="mapa_parques_unico")
 
     with col_data_ver:
         cant_p = len(parques_zona)
