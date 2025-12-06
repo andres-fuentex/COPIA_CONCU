@@ -1,7 +1,7 @@
 {
 "type": "FeatureCollection",
 "name": "dim_salud",
-"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::4686" } },
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
 { "type": "Feature", "properties": { "nombre_hospital": "UNIDAD DE SERVICIOS DE SALUD LA VICTORIA 1" }, "geometry": { "type": "Point", "coordinates": [ -74.094036155961177, 4.553549051329623 ] } },
 { "type": "Feature", "properties": { "nombre_hospital": "UNIDAD DE SERVICIOS DE SALUD LOS ALPES" }, "geometry": { "type": "Point", "coordinates": [ -74.083677579113754, 4.553906204410285 ] } },
