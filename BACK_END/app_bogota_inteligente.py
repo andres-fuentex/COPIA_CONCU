@@ -795,7 +795,7 @@ elif st.session_state.step == 5:
         st.metric("Parques Cercanos", cant_p)
         
         # TEXTOS MÁS CERCANOS / HUMANOS
-        if cant_p > 2:
+        if cant_p > 4:
             st.success("✅ **¡Entorno Privilegiado!**\nTienes múltiples opciones para salir a correr, pasear a tu mascota o desconectarte del ruido.")
         elif cant_p > 0:
             st.info("🏃 **Vida Activa:**\nTienes espacios verdes a la mano para tu rutina diaria de ejercicio o descanso.")
@@ -1008,7 +1008,6 @@ if st.session_state.step == 5:
     # RECUPERACIÓN Y PROCESAMIENTO DE DATOS
     
     # Recuperar Dataframe de Manzanas
-    # Intentamos recuperar la variable ya procesada. Si no existe, usamos la zona base.
     if 'manzanas_final' in locals() and not manzanas_final.empty:
         df_reporte = manzanas_final.copy()
     else:
@@ -1025,12 +1024,11 @@ if st.session_state.step == 5:
                 pass 
 
     # Calcular KPIs (Los 5 puntos clave)
-    
-    # 1. Transporte (Cantidad)
     num_tm = len(transporte_zona)
-    
-    # 2. Educación (Cantidad)
     num_col = len(colegios_zona)
+    # --- NUEVOS KPIs ---
+    num_salud = len(salud_zona)
+    num_parques = len(parques_zona)
     
     # 3. Normativa (POT) - Moda
     if 'uso_pot_simplificado' not in df_reporte.columns:
@@ -1065,15 +1063,13 @@ if st.session_state.step == 5:
     radio = st.session_state.radio_analisis
     lat, lon = st.session_state.punto_lat, st.session_state.punto_lon
 
-    # ALGORITMO DE SCORING VIABILIDAD
-
-    # ALGORITMO DE SCORING ACTUALIZADO (Ahora sobre 5 puntos)
+    # ALGORITMO DE SCORING VIABILIDAD (ACTUALIZADO 5 PUNTOS)
     score = 0
     if num_tm >= 2: score += 1      # Transporte
     if num_col >= 1: score += 1     # Educación
     if uso_moda != "Sin Clasificación": score += 1 # Normativa
-    if cant_parques >= 1: score += 1 # Parques (NUEVO)
-    if cant_salud >= 1: score += 1   # Salud (NUEVO)
+    if num_parques >= 1: score += 1 # Parques (NUEVO)
+    if num_salud >= 1: score += 1   # Salud (NUEVO)
     
     # Recalibración del dictamen
     if score >= 4:
@@ -1086,10 +1082,8 @@ if st.session_state.step == 5:
         dictamen = "VIABILIDAD RESTRINGIDA ⭐"
         color_fondo = "#C0392B"
 
-
-
-    # GENERACIÓN DE IMAGEN
-    with st.spinner("Generando mapa detallado con estaciones y colegios..."):
+    # GENERACIÓN DE IMAGEN ESTÁTICA PARA EL REPORTE
+    with st.spinner("Generando mapa detallado con estaciones, colegios y bienestar..."):
         try:
             fig_mapa = go.Figure()
 
@@ -1111,7 +1105,7 @@ if st.session_state.step == 5:
                     lat=transporte_zona.geometry.y,
                     lon=transporte_zona.geometry.x,
                     mode='markers',
-                    marker=dict(size=8, color='#E74C3C'), # Rojo
+                    marker=dict(size=6, color='#E74C3C'), # Rojo
                     name='Estaciones'
                 ))
 
@@ -1121,15 +1115,36 @@ if st.session_state.step == 5:
                     lat=colegios_zona.geometry.y,
                     lon=colegios_zona.geometry.x,
                     mode='markers',
-                    marker=dict(size=8, color='#8E44AD'), # Morado
+                    marker=dict(size=6, color='#8E44AD'), # Morado
                     name='Colegios'
+                ))
+
+            # --- NUEVO: SALUD ---
+            if not salud_zona.empty:
+                fig_mapa.add_trace(go.Scattermapbox(
+                    lat=salud_zona.geometry.y,
+                    lon=salud_zona.geometry.x,
+                    mode='markers',
+                    marker=dict(size=6, color='red', symbol='circle'), 
+                    name='Salud'
+                ))
+
+            # --- NUEVO: PARQUES (Puntos centroides para la imagen estática) ---
+            if not parques_zona.empty:
+                centros = parques_zona.geometry.centroid
+                fig_mapa.add_trace(go.Scattermapbox(
+                    lat=centros.y,
+                    lon=centros.x,
+                    mode='markers',
+                    marker=dict(size=6, color='#2ECC71', symbol='circle'), 
+                    name='Parques'
                 ))
 
             # El PIN del Usuario
             fig_mapa.add_trace(go.Scattermapbox(
                 lat=[lat], lon=[lon],
                 mode='markers',
-                marker=dict(size=15, color='black', symbol='marker'),
+                marker=dict(size=12, color='black', symbol='marker'),
                 name='Ubicación'
             ))
 
@@ -1149,9 +1164,7 @@ if st.session_state.step == 5:
         except Exception as e:
             html_mapa = f"<div style='padding:20px; background:#f0f0f0;'>Mapa no disponible ({str(e)})</div>"
     
-
-    
-    # PLANTILLA HTML (TEXTOS Y TABLAS) lo que el usuario se lleva
+    # PLANTILLA HTML (TEXTOS Y TABLAS) - TABLA AMPLIADA A 6 COLUMNAS
     html_report = f"""
     <!DOCTYPE html>
     <html>
@@ -1165,8 +1178,8 @@ if st.session_state.step == 5:
             
             /* Estilo Tabla KPI */
             .kpi-table {{ width: 100%; border-collapse: collapse; margin-top: 15px; }}
-            .kpi-table th {{ background-color: #F4F6F7; padding: 10px; text-align: center; border: 1px solid #ddd; font-size: 12px; color: #777; }}
-            .kpi-table td {{ padding: 15px; text-align: center; border: 1px solid #ddd; font-size: 18px; font-weight: bold; color: #2C3E50; }}
+            .kpi-table th {{ background-color: #F4F6F7; padding: 8px; text-align: center; border: 1px solid #ddd; font-size: 11px; color: #777; }}
+            .kpi-table td {{ padding: 10px; text-align: center; border: 1px solid #ddd; font-size: 16px; font-weight: bold; color: #2C3E50; }}
             
             .dictamen-box {{ margin-top: 20px; padding: 20px; background: {color_fondo}; color: white; text-align: center; border-radius: 8px; }}
             .security-box {{ margin-top: 10px; padding: 15px; background: #FDEDEC; border-left: 5px solid #C0392B; color: #922B21; }}
@@ -1174,7 +1187,6 @@ if st.session_state.step == 5:
     </head>
     <body>
         <div class="header">
-            
             <h1 style="margin:0;">Ficha de Inteligencia Territorial</h1>
             <p style="margin:5px 0 0;">Bogotá D.C. | Localidad {localidad}</p>
         </div>
@@ -1184,53 +1196,56 @@ if st.session_state.step == 5:
             
             <p class="intro-text">
                 Una vez evaluada la zona seleccionada en las coordenadas ({lat:.4f}, {lon:.4f}) con un radio de {radio} metros, 
-                es importante determinar los factores de infraestructura y normativa detallados en las ayudas siguientes:
+                es importante determinar los factores de infraestructura, bienestar y normativa detallados:
             </p>
             
             {html_mapa}
             
             <table class="kpi-table">
                 <tr>
-                    <th>ESTACIONES TM (Rojo)</th>
-                    <th>COLEGIOS (Morado)</th>
-                    <th>ESTRATO MODA</th>
-                    <th>DOMINIO DE POT</th>
+                    <th>ESTACIONES TM</th>
+                    <th>COLEGIOS</th>
+                    <th>PARQUES</th>
+                    <th>HOSPITALES</th>
+                    <th>ESTRATO</th>
+                    <th>USO POT</th>
                 </tr>
                 <tr>
                     <td>{num_tm}</td>
                     <td>{num_col}</td>
+                    <td>{num_parques}</td>
+                    <td>{num_salud}</td>
                     <td>{estrato_moda}</td>
-                    <td style="font-size:14px;">{uso_moda}</td>
+                    <td style="font-size:12px;">{uso_moda}</td>
                 </tr>
             </table>
         </div>
 
         <div class="card">
             <h3 style="margin-top:0; border-bottom: 1px solid #eee; padding-bottom: 10px;">🛡️ Contexto de Seguridad</h3>
-            
             <p class="intro-text">
                 A nivel de la localidad de {localidad}, es prudente destacar que el entorno de seguridad se caracteriza 
                 por la prevalencia de los siguientes incidentes de alto impacto:
             </p>
-            
             <div class="security-box">
                 {lista_seguridad_html}
             </div>
         </div>
 
         <div class="dictamen-box">
-            <p style="margin:0; font-size:14px; opacity:0.9;">DICTAMEN TÉCNICO</p>
+            <p style="margin:0; font-size:14px; opacity:0.9;">DICTAMEN TÉCNICO MULTIDIMENSIONAL</p>
             <h2 style="margin:5px 0 0; font-size:24px;">{dictamen}</h2>
-            <p style="margin-top:10px; font-size:12px;">De acuerdo con el análisis algorítmico de puntuación aditiva.</p>
+            <p style="margin-top:10px; font-size:12px;">Basado en 5 factores: Movilidad, Educación, Salud, Espacio Público y Normativa.</p>
         </div>
         
         <div style="text-align: center; margin-top: 30px; color: #999; font-size: 11px;">
-            Reporte generado automáticamente el 28/11/2025
+            Reporte generado automáticamente con Datos Abiertos de Bogotá | 28/11/2025
         </div>
     </body>
     </html>
     """
 
+   
     # ZONA DE DESCARGA Y REINICIO
     col1, col2 = st.columns([2, 1])
     
