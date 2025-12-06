@@ -680,7 +680,119 @@ elif st.session_state.step == 5:
             st.caption("Por tipo:")
             st.dataframe(colegios_zona['sector'].value_counts(), use_container_width=True)
 
-    
+    # --- SECCIÓN SALUD ---
+    st.markdown("---")
+    st.markdown("### 🏥 5. Salud y Bienestar")
+    st.markdown("Identificamos la oferta de servicios médicos (IPS, Hospitales, Clínicas) en tu radio cercano.")
+
+    col_mapa_salud, col_data_salud = st.columns([2, 1])
+
+    with col_mapa_salud:
+        fig_s = go.Figure()
+        
+        # 1. Zona (Círculo Naranja)
+        fig_s.add_trace(go.Scattermapbox(
+            lat=list(area_interes.exterior.xy[1]), lon=list(area_interes.exterior.xy[0]),
+            mode='lines', fill='toself', name='Zona analizada',
+            fillcolor='rgba(255, 165, 0, 0.1)', line=dict(color='orange', width=2)
+        ))
+        
+        # 2. Hospitales (Puntos)
+        if not salud_zona.empty:
+            fig_s.add_trace(go.Scattermapbox(
+                lat=salud_zona.geometry.y, lon=salud_zona.geometry.x,
+                mode='markers', name='Salud',
+                # Usamos símbolo de cruz y color Rojo
+                marker=dict(size=12, color="#E7B922", symbol='circle'),
+                # Ajusta 'nombre_hospital' si tu columna se llama diferente
+                text=salud_zona.get('nombre_hospital', 'Centro de Salud'), 
+                hoverinfo='text'
+            ))
+            
+        # 3. Tú (Punto Azul)
+        fig_s.add_trace(go.Scattermapbox(
+            lat=[st.session_state.punto_lat], lon=[st.session_state.punto_lon],
+            mode='markers', name='Tú', marker=dict(size=12, color='#3498DB')
+        ))
+        
+        # Configuración igual a Movilidad
+        fig_s.update_layout(
+            mapbox_style="carto-positron", 
+            mapbox_center={"lat": st.session_state.punto_lat, "lon": st.session_state.punto_lon},
+            mapbox_zoom=14, margin={"r":0,"t":0,"l":0,"b":0}, height=350, showlegend=True,
+            legend=dict(orientation="h", y=1.1)
+        )
+        st.plotly_chart(fig_s, use_container_width=True, key="mapa_salud_unico")
+
+    with col_data_salud:
+        cant_s = len(salud_zona)
+        st.metric("Centros de Salud", cant_s)
+        
+        if cant_s > 1:
+            st.success("✅ **Zona Cubierta:**\nAcceso rápido a atención médica.")
+        elif cant_s == 1:
+            st.warning("⚠️ **Cobertura Básica:**\nTienes un centro de salud cerca.")
+        else:
+            st.error("❌ **Sin Cobertura Inmediata:**\nNo hay hospitales en este radio exacto.")
+
+    # --- SECCIÓN PARQUES ---
+    st.markdown("---")
+    st.markdown("### 🌳 6. Espacio Público y Verde")
+    st.markdown("Zonas de recreación, deporte y descanso al aire libre.")
+
+    col_mapa_ver, col_data_ver = st.columns([2, 1])
+
+    with col_mapa_ver:
+        fig_v = go.Figure()
+        
+        # 1. Zona
+        fig_v.add_trace(go.Scattermapbox(
+            lat=list(area_interes.exterior.xy[1]), lon=list(area_interes.exterior.xy[0]),
+            mode='lines', fill='toself', name='Zona analizada',
+            fillcolor='rgba(255, 165, 0, 0.1)', line=dict(color='orange', width=2)
+        ))
+        
+        # 2. Parques (Usamos CENTROIDES para que se vean como puntos)
+        if not parques_zona.empty:
+            # Calculamos el centro del parque para poner el pin
+            centros_parques = parques_zona.geometry.centroid
+            
+            fig_v.add_trace(go.Scattermapbox(
+                lat=centros_parques.y, lon=centros_parques.x,
+                mode='markers', name='Parques',
+                # Color Verde Esmeralda
+                marker=dict(size=10, color='#2ECC71', symbol='circle'),
+                text=parques_zona.get('nombre_parque', 'Zona Verde'), 
+                hoverinfo='text'
+            ))
+            
+        # 3. Tú
+        fig_v.add_trace(go.Scattermapbox(
+            lat=[st.session_state.punto_lat], lon=[st.session_state.punto_lon],
+            mode='markers', name='Tú', marker=dict(size=12, color='#3498DB')
+        ))
+        
+        fig_v.update_layout(
+            mapbox_style="carto-positron", 
+            mapbox_center={"lat": st.session_state.punto_lat, "lon": st.session_state.punto_lon},
+            mapbox_zoom=14, margin={"r":0,"t":0,"l":0,"b":0}, height=350, showlegend=True,
+            legend=dict(orientation="h", y=1.1)
+        )
+        st.plotly_chart(fig_v, use_container_width=True, key="mapa_parques_unico")
+
+    with col_data_ver:
+        cant_p = len(parques_zona)
+        st.metric("Parques Cercanos", cant_p)
+        
+        if cant_p > 2:
+            st.success("✅ **Pulmón Urbano:**\nExcelente oferta recreativa.")
+        elif cant_p > 0:
+            st.warning("⚠️ **Oferta Moderada:**\nTienes algún espacio verde cerca.")
+        else:
+            st.error("❌ **Déficit Verde:**\nZona dura sin parques inmediatos.")
+
+
+
     # SECCIÓN 3: ESTRATIFICACIÓN
     
     st.markdown("---")
@@ -845,116 +957,7 @@ elif st.session_state.step == 5:
             if st.checkbox("Ver datos crudos del POT"):
                 st.write(areas_pot.head())
 
-    # --- SECCIÓN SALUD ---
-    st.markdown("---")
-    st.markdown("### 🏥 5. Salud y Bienestar")
-    st.markdown("Identificamos la oferta de servicios médicos (IPS, Hospitales, Clínicas) en tu radio cercano.")
-
-    col_mapa_salud, col_data_salud = st.columns([2, 1])
-
-    with col_mapa_salud:
-        fig_s = go.Figure()
-        
-        # 1. Zona (Círculo Naranja)
-        fig_s.add_trace(go.Scattermapbox(
-            lat=list(area_interes.exterior.xy[1]), lon=list(area_interes.exterior.xy[0]),
-            mode='lines', fill='toself', name='Zona analizada',
-            fillcolor='rgba(255, 165, 0, 0.1)', line=dict(color='orange', width=2)
-        ))
-        
-        # 2. Hospitales (Puntos)
-        if not salud_zona.empty:
-            fig_s.add_trace(go.Scattermapbox(
-                lat=salud_zona.geometry.y, lon=salud_zona.geometry.x,
-                mode='markers', name='Salud',
-                # Usamos símbolo de cruz y color Rojo
-                marker=dict(size=12, color="#E7B922", symbol='circle'),
-                # Ajusta 'nombre_hospital' si tu columna se llama diferente
-                text=salud_zona.get('nombre_hospital', 'Centro de Salud'), 
-                hoverinfo='text'
-            ))
-            
-        # 3. Tú (Punto Azul)
-        fig_s.add_trace(go.Scattermapbox(
-            lat=[st.session_state.punto_lat], lon=[st.session_state.punto_lon],
-            mode='markers', name='Tú', marker=dict(size=12, color='#3498DB')
-        ))
-        
-        # Configuración igual a Movilidad
-        fig_s.update_layout(
-            mapbox_style="carto-positron", 
-            mapbox_center={"lat": st.session_state.punto_lat, "lon": st.session_state.punto_lon},
-            mapbox_zoom=14, margin={"r":0,"t":0,"l":0,"b":0}, height=350, showlegend=True,
-            legend=dict(orientation="h", y=1.1)
-        )
-        st.plotly_chart(fig_s, use_container_width=True, key="mapa_salud_unico")
-
-    with col_data_salud:
-        cant_s = len(salud_zona)
-        st.metric("Centros de Salud", cant_s)
-        
-        if cant_s > 1:
-            st.success("✅ **Zona Cubierta:**\nAcceso rápido a atención médica.")
-        elif cant_s == 1:
-            st.warning("⚠️ **Cobertura Básica:**\nTienes un centro de salud cerca.")
-        else:
-            st.error("❌ **Sin Cobertura Inmediata:**\nNo hay hospitales en este radio exacto.")
-
-    # --- SECCIÓN PARQUES ---
-    st.markdown("---")
-    st.markdown("### 🌳 6. Espacio Público y Verde")
-    st.markdown("Zonas de recreación, deporte y descanso al aire libre.")
-
-    col_mapa_ver, col_data_ver = st.columns([2, 1])
-
-    with col_mapa_ver:
-        fig_v = go.Figure()
-        
-        # 1. Zona
-        fig_v.add_trace(go.Scattermapbox(
-            lat=list(area_interes.exterior.xy[1]), lon=list(area_interes.exterior.xy[0]),
-            mode='lines', fill='toself', name='Zona analizada',
-            fillcolor='rgba(255, 165, 0, 0.1)', line=dict(color='orange', width=2)
-        ))
-        
-        # 2. Parques (Usamos CENTROIDES para que se vean como puntos)
-        if not parques_zona.empty:
-            # Calculamos el centro del parque para poner el pin
-            centros_parques = parques_zona.geometry.centroid
-            
-            fig_v.add_trace(go.Scattermapbox(
-                lat=centros_parques.y, lon=centros_parques.x,
-                mode='markers', name='Parques',
-                # Color Verde Esmeralda
-                marker=dict(size=10, color='#2ECC71', symbol='circle'),
-                text=parques_zona.get('nombre_parque', 'Zona Verde'), 
-                hoverinfo='text'
-            ))
-            
-        # 3. Tú
-        fig_v.add_trace(go.Scattermapbox(
-            lat=[st.session_state.punto_lat], lon=[st.session_state.punto_lon],
-            mode='markers', name='Tú', marker=dict(size=12, color='#3498DB')
-        ))
-        
-        fig_v.update_layout(
-            mapbox_style="carto-positron", 
-            mapbox_center={"lat": st.session_state.punto_lat, "lon": st.session_state.punto_lon},
-            mapbox_zoom=14, margin={"r":0,"t":0,"l":0,"b":0}, height=350, showlegend=True,
-            legend=dict(orientation="h", y=1.1)
-        )
-        st.plotly_chart(fig_v, use_container_width=True, key="mapa_parques_unico")
-
-    with col_data_ver:
-        cant_p = len(parques_zona)
-        st.metric("Parques Cercanos", cant_p)
-        
-        if cant_p > 2:
-            st.success("✅ **Pulmón Urbano:**\nExcelente oferta recreativa.")
-        elif cant_p > 0:
-            st.warning("⚠️ **Oferta Moderada:**\nTienes algún espacio verde cerca.")
-        else:
-            st.error("❌ **Déficit Verde:**\nZona dura sin parques inmediatos.")
+    
 
     
     # SEGURIDAD 
