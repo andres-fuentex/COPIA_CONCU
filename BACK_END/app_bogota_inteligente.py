@@ -868,7 +868,7 @@ elif st.session_state.step == 5:
                 lat=salud_zona.geometry.y, lon=salud_zona.geometry.x,
                 mode='markers', name='Salud',
                 # Usamos símbolo de cruz y color Rojo
-                marker=dict(size=12, color='#E74C3C', symbol='cross'),
+                marker=dict(size=12, color="#25A2C9", symbol='circle'),
                 # Ajusta 'nombre_hospital' si tu columna se llama diferente
                 text=salud_zona.get('nombre_hospital', 'Centro de Salud'), 
                 hoverinfo='text'
