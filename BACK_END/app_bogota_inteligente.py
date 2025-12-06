@@ -703,7 +703,7 @@ elif st.session_state.step == 5:
                 lat=salud_zona.geometry.y, lon=salud_zona.geometry.x,
                 mode='markers', name='Salud',
                 # Usamos símbolo de cruz y color Rojo
-                marker=dict(size=12, color="#D67010", symbol='circle'),
+                marker=dict(size=12, color="#0905F7", symbol='circle'),
                 # Ajusta 'nombre_hospital' si tu columna se llama diferente
                 text=salud_zona.get('nombre_hospital', 'Centro de Salud'), 
                 hoverinfo='text'
@@ -776,7 +776,7 @@ elif st.session_state.step == 5:
                 hoverinfo='text'
             ))
             
-        # 3. Tú (Punto Azul)
+        # 3. Tú 
         fig_v.add_trace(go.Scattermapbox(
             lat=[st.session_state.punto_lat], lon=[st.session_state.punto_lon],
             mode='markers', name='Tú', marker=dict(size=14, color='#2980B9', symbol='circle')
@@ -794,7 +794,7 @@ elif st.session_state.step == 5:
         cant_p = len(parques_zona)
         st.metric("Parques Cercanos", cant_p)
         
-        # TEXTOS MÁS CERCANOS / HUMANOS
+        
         if cant_p > 4:
             st.success("✅ **¡Entorno Privilegiado!**\nTienes múltiples opciones para salir a correr, pasear a tu mascota o desconectarte del ruido.")
         elif cant_p > 0:
@@ -1125,7 +1125,7 @@ if st.session_state.step == 5:
                     lat=salud_zona.geometry.y,
                     lon=salud_zona.geometry.x,
                     mode='markers',
-                    marker=dict(size=6, color='red', symbol='circle'), 
+                    marker=dict(size=6, color="#3A07F3", symbol='circle'), 
                     name='Salud'
                 ))
 
@@ -1136,7 +1136,7 @@ if st.session_state.step == 5:
                     lat=centros.y,
                     lon=centros.x,
                     mode='markers',
-                    marker=dict(size=6, color='#2ECC71', symbol='circle'), 
+                    marker=dict(size=6, color="#05F024", symbol='circle'), 
                     name='Parques'
                 ))
 
@@ -1144,7 +1144,7 @@ if st.session_state.step == 5:
             fig_mapa.add_trace(go.Scattermapbox(
                 lat=[lat], lon=[lon],
                 mode='markers',
-                marker=dict(size=12, color='black', symbol='marker'),
+                marker=dict(size=12, color='black', symbol='circle'),
                 name='Ubicación'
             ))
 
