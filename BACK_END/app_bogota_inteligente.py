@@ -91,11 +91,11 @@ with col_info4:
 
 with col_info5:
     st.markdown("### 🩺 Salud")
-    st.error("Conoce la oferta del sector selecionado en el area de la salud.")
+    st.info("Conoce la oferta del sector selecionado en el area de la salud.")
 
 with col_info6:
     st.markdown("### 🌳 Zonas Verdes")
-    st.error("Camina, Corre y conoce el entorno medio ambiental de tu sector")
+    st.success("Camina, Corre y conoce el entorno medio ambiental de tu sector")
 
 st.markdown("---")
 
@@ -165,7 +165,7 @@ if st.session_state.step == 1:
     * 🛡️ **Seguridad:** Datos directos de la Secretaría de Seguridad.
     * 🗺️ **Normativa:** Reglas de juego del POT (Decreto 555).
     * 🚌 **Infraestructura:** Red oficial de Transmilenio y Educación.
-    * 🌳 ** Calidad de vida:** acceso a servicios de salud y zonas verdes.
+    * 🌳 **Calidad de vida:** acceso a servicios de salud y zonas verdes.
     """)
 
     # CSS PARA BOTÓN VERDE
