@@ -104,22 +104,19 @@ st.markdown("---")
 @st.cache_data
 def cargar_datasets():
     """
-    Descarga, valida y cachea los datasets geoespaciales desde el repositorio del proyecto.
-    Retorna un diccionario con los GeoDataFrames normalizados (EPSG:4326).
+    Descarga, valida y cachea los datasets geoespaciales.
+    Forzamos la corrección de coordenadas para Verde y Salud.
     """
-    # Repositorio oficial de datos procesados
     BASE_URL = "https://github.com/andres-fuentex/COPIA_CONCU/raw/main/DATOS_LIMPIOS/"
     
-    # Mapeo de archivos según la arquitectura de datos definida
     archivos = {
-        "localidades": "dim_localidad.geojson", # mapa de localidades y contexto de seguridad basado en DAI
-        "areas":       "dim_area.geojson",     # Usos del suelo POT
-        "manzanas":    "tabla_hechos.geojson", # Estratificación
-        "transporte":  "dim_transporte.geojson", # datos de estaciones de transmilenio
-        "colegios":    "dim_colegios.geojson", # datos secretaria de educacion colegios en bogota
-        #nuevos
-        "salud":       "dim_salud.geojson", # datos de los hospitales
-        "verde":       "dim_verde.geojson" # datos de los parques
+        "localidades": "dim_localidad.geojson",
+        "areas":       "dim_area.geojson",
+        "manzanas":    "tabla_hechos.geojson",
+        "transporte":  "dim_transporte.geojson",
+        "colegios":    "dim_colegios.geojson",
+        "salud":       "dim_salud.geojson", 
+        "verde":       "dim_verde.geojson"
     }
     
     dataframes = {}
@@ -128,18 +125,37 @@ def cargar_datasets():
     for nombre_clave, nombre_archivo in archivos.items():
         try:
             url_completa = f"{BASE_URL}{nombre_archivo}"
-            
-            # Lectura directa
             gdf = gpd.read_file(url_completa)
             
+            # --- CURACIÓN ESPECÍFICA DE COORDENADAS ---
             
-            if gdf.crs.to_string() != "EPSG:4326":
-                gdf = gdf.to_crs("EPSG:4326")
+            # CASO 1: PARQUES (dim_verde)
+            # Vienen en planas (91130...), hay que decirles que son Bogotá (3116) y pasar a GPS (4326)
+            if nombre_clave == "verde":
+                if gdf.crs is None:
+                    gdf.set_crs(epsg=3116, inplace=True) # Asumimos Magna Bogotá
+                gdf = gdf.to_crs(epsg=4326) # Convertimos a GPS
+            
+            # CASO 2: SALUD (dim_salud)
+            # Vienen en GPS (-74...), pero a veces sin etiqueta. Aseguramos que sea 4326.
+            elif nombre_clave == "salud":
+                if gdf.crs is None:
+                    gdf.set_crs(epsg=4326, inplace=True)
+                else:
+                    gdf = gdf.to_crs(epsg=4326)
+
+            # CASO 3: EL RESTO
+            # Verificación estándar
+            else:
+                if gdf.crs is None:
+                    gdf.set_crs(epsg=4326, inplace=True)
+                elif gdf.crs.to_string() != "EPSG:4326":
+                    gdf = gdf.to_crs("EPSG:4326")
                 
             dataframes[nombre_clave] = gdf
             
         except Exception as e:
-            errores.append(f"Error cargando capa {nombre_clave}: {str(e)}")
+            errores.append(f"Error cargando {nombre_clave}: {str(e)}")
     
     if errores:
         for err in errores:
