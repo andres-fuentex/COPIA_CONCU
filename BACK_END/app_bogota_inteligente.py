@@ -71,7 +71,7 @@ st.markdown("""
 st.write("")
 
 # Explicación de valor con iconos
-col_info1, col_info2, col_info3, col_info4 = st.columns(4)
+col_info1, col_info2, col_info3, col_info4, col_info5,  col_info6 = st.columns(6)
 
 with col_info1:
     st.markdown("### 👮 Seguridad")
@@ -88,6 +88,14 @@ with col_info3:
 with col_info4:
     st.markdown("### 🏫 Educación")
     st.error("Para las familias: encuentra la oferta de **Colegios Oficiales y Privados** en el sector.")
+
+with col_info5:
+    st.markdown("### 🩺 Salud")
+    st.error("Conoce la oferta del sector selecionado en el area de la salud.")
+
+with col_info6:
+    st.markdown("### 🌳 Zonas Verdes")
+    st.error("Camina, Corre y conoce el entorno medio ambiental de tu sector")
 
 st.markdown("---")
 
@@ -108,7 +116,10 @@ def cargar_datasets():
         "areas":       "dim_area.geojson",     # Usos del suelo POT
         "manzanas":    "tabla_hechos.geojson", # Estratificación
         "transporte":  "dim_transporte.geojson", # datos de estaciones de transmilenio
-        "colegios":    "dim_colegios.geojson" # datos secretaria de educacion colegios en bogota
+        "colegios":    "dim_colegios.geojson", # datos secretaria de educacion colegios en bogota
+        #nuevos
+        "salud":       "dim_salud.geojson", # datos de los hospitales
+        "verde":       "dim_verde.geojson" # datos de los parques
     }
     
     dataframes = {}
@@ -154,6 +165,7 @@ if st.session_state.step == 1:
     * 🛡️ **Seguridad:** Datos directos de la Secretaría de Seguridad.
     * 🗺️ **Normativa:** Reglas de juego del POT (Decreto 555).
     * 🚌 **Infraestructura:** Red oficial de Transmilenio y Educación.
+    * 🌳 ** Calidad de vida:** acceso a servicios de salud y zonas verdes.
     """)
 
     # CSS PARA BOTÓN VERDE
@@ -522,6 +534,10 @@ elif st.session_state.step == 5:
     colegios    = st.session_state.colegios
     areas_pot   = st.session_state.areas
 
+    # nuevos 
+    salud = st.session_state.salud
+    verde = st.session_state.verde
+
     # 1.1 Buffer de Análisis
     punto_ref = Point(st.session_state.punto_lon, st.session_state.punto_lat)
     gdf_punto = gpd.GeoDataFrame([{'geometry': punto_ref}], crs="EPSG:4326")
@@ -533,13 +549,22 @@ elif st.session_state.step == 5:
     if colegios.crs != "EPSG:4326": colegios = colegios.to_crs("EPSG:4326")
     if manzanas.crs != "EPSG:4326": manzanas = manzanas.to_crs("EPSG:4326")
     if areas_pot.crs != "EPSG:4326": areas_pot = areas_pot.to_crs("EPSG:4326")
+    if salud.crs != "EPSG:4326": salud = salud.to_crs("EPSG:4326")
+    if verde.crs != "EPSG:4326": verde = verde.to_crs("EPSG:4326")
+
+    
 
     # 1.3 Cruces Espaciales 
     transporte_zona = transporte[transporte.geometry.intersects(area_interes)]
     colegios_zona = colegios[colegios.geometry.intersects(area_interes)]
     manzanas_zona = manzanas[manzanas.geometry.intersects(area_interes)]
-
+    # nuevos
+    salud_zona = salud[salud.geometry.intersects(area_interes)]
+    parques_zona = verde[verde.geometry.intersects(area_interes)]
     
+    cant_salud = len(salud_zona)
+    cant_parques = len(parques_zona)
+
     # SECCIÓN 1: MOVILIDAD
    
     st.markdown("---")
@@ -727,7 +752,7 @@ elif st.session_state.step == 5:
         st.warning("No hay datos de POT cargados o manzanas seleccionadas.")
         manzanas_final['uso_pot_simplificado'] = 'Sin Clasificación'
 
-    
+      
     # VISUALIZACIÓN
     
     col_mapa_pot, col_data_pot = st.columns([2, 1])
@@ -801,6 +826,98 @@ elif st.session_state.step == 5:
             # Botón de depuración
             if st.checkbox("Ver datos crudos del POT"):
                 st.write(areas_pot.head())
+
+    # --- SECCIÓN 5: CALIDAD DE VIDA (MAPA + DATOS) ---
+    st.markdown("---")
+    st.markdown("### 🌳 5. Calidad de Vida (Bienestar)")
+    st.markdown("Espacios vitales para tu salud física y mental.")
+
+    # Creamos layout de 2 columnas: Mapa (ancho) y Datos (angosto)
+    col_mapa_bien, col_data_bien = st.columns([2, 1])
+
+    with col_mapa_bien:
+        # Construimos el Mapa
+        fig_bien = go.Figure()
+
+        # 1. Zona de Análisis (Tu círculo buffer)
+        fig_bien.add_trace(go.Scattermapbox(
+            lat=list(area_interes.exterior.xy[1]),
+            lon=list(area_interes.exterior.xy[0]),
+            mode='lines', fill='toself', name='Zona de Análisis',
+            fillcolor='rgba(46, 204, 113, 0.1)', # Verde muy suave
+            line=dict(color='#27AE60', width=2)
+        ))
+
+        # 2. CAPA DE PARQUES (Polígonos)
+        if not parques_zona.empty:
+            # Convertimos a GeoJSON para que Plotly entienda los polígonos
+            import json
+            geojson_parques = json.loads(parques_zona.to_json())
+            
+            fig_bien.add_trace(go.Choroplethmapbox(
+                geojson=geojson_parques,
+                locations=parques_zona.index, # Usamos el índice como ID
+                z=[1] * len(parques_zona),    # Valor dummy para el color plano
+                colorscale=[[0, '#2ECC71'], [1, '#2ECC71']], # Verde Esmeralda
+                showscale=False,              # Ocultamos la barra de color
+                marker_opacity=0.6,
+                marker_line_width=1,
+                name='Parques',
+                # Intentamos mostrar el nombre, si no existe ponemos 'Zona Verde'
+                hovertext=parques_zona.get('nombre_parque', 'Zona Verde'),
+                hoverinfo='text'
+            ))
+
+        # 3. CAPA DE SALUD (Puntos)
+        if not salud_zona.empty:
+            fig_bien.add_trace(go.Scattermapbox(
+                lat=salud_zona.geometry.y,
+                lon=salud_zona.geometry.x,
+                mode='markers',
+                marker=dict(size=14, color='#E74C3C', symbol='cross'), # Cruz Roja
+                name='Salud',
+                text=salud_zona.get('nombre_hospital', 'Centro de Salud'),
+                hoverinfo='text'
+            ))
+
+        # 4. TU UBICACIÓN (El Pin)
+        fig_bien.add_trace(go.Scattermapbox(
+            lat=[st.session_state.punto_lat], lon=[st.session_state.punto_lon],
+            mode='markers', name='Tú', marker=dict(size=12, color='black')
+        ))
+
+        # Configuración de la Cámara y Estilo
+        fig_bien.update_layout(
+            mapbox_style="carto-positron",
+            mapbox_zoom=14.5,
+            mapbox_center={"lat": st.session_state.punto_lat, "lon": st.session_state.punto_lon},
+            margin={"r":0,"t":0,"l":0,"b":0},
+            height=350,
+            showlegend=True,
+            legend=dict(orientation="h", y=1.1)
+        )
+        st.plotly_chart(fig_bien, use_container_width=True)
+
+    # Columna Derecha: Tus Métricas (El código que ya tenías, ajustado al layout)
+    with col_data_bien:
+        
+        # Tarjeta Parques
+        st.metric("Parques Cercanos", cant_parques)
+        if cant_parques > 2:
+            st.success("✅ **Pulmón Verde:**\nExcelente oferta recreativa.")
+        elif cant_parques > 0:
+            st.warning("⚠️ **Oferta Limitada:**\nPocos espacios verdes.")
+        else:
+            st.error("❌ **Déficit Verde:**\nZona dura, sin parques.")
+
+        st.write("") # Espacio visual
+
+        # Tarjeta Salud
+        st.metric(" 🩺 Centros de Salud", cant_salud)
+        if cant_salud > 0:
+            st.success("✅ **Zona Protegida:**\nAcceso a urgencias/citas.")
+        else:
+            st.error("⚠️ **Atención:**\nSin salud inmediata.")
 
     
     # SEGURIDAD 
@@ -898,13 +1015,27 @@ if st.session_state.step == 5:
     lat, lon = st.session_state.punto_lat, st.session_state.punto_lon
 
     # ALGORITMO DE SCORING VIABILIDAD
+
+    # ALGORITMO DE SCORING ACTUALIZADO (Ahora sobre 5 puntos)
     score = 0
-    if num_tm >= 2: score += 1
-    if num_col >= 1: score += 1
-    if uso_moda != "Sin Clasificación": score += 1
+    if num_tm >= 2: score += 1      # Transporte
+    if num_col >= 1: score += 1     # Educación
+    if uso_moda != "Sin Clasificación": score += 1 # Normativa
+    if cant_parques >= 1: score += 1 # Parques (NUEVO)
+    if cant_salud >= 1: score += 1   # Salud (NUEVO)
     
-    dictamen = "VIABILIDAD ALTA" if score == 3 else "VIABILIDAD MEDIA" if score == 2 else "VIABILIDAD RESTRINGIDA"
-    color_fondo = "#27AE60" if score == 3 else "#F39C12" if score == 2 else "#C0392B" #
+    # Recalibración del dictamen
+    if score >= 4:
+        dictamen = "VIABILIDAD ALTA ⭐⭐⭐"
+        color_fondo = "#27AE60"
+    elif score >= 2:
+        dictamen = "VIABILIDAD MEDIA ⭐⭐"
+        color_fondo = "#F39C12"
+    else:
+        dictamen = "VIABILIDAD RESTRINGIDA ⭐"
+        color_fondo = "#C0392B"
+
+
 
     # GENERACIÓN DE IMAGEN
     with st.spinner("Generando mapa detallado con estaciones y colegios..."):
