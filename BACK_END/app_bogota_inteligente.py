@@ -1136,7 +1136,7 @@ if st.session_state.step == 5:
                     lat=centros.y,
                     lon=centros.x,
                     mode='markers',
-                    marker=dict(size=6, color="#05420D", symbol='circle'), 
+                    marker=dict(size=6, color="#178B27", symbol='circle'), 
                     name='Parques'
                 ))
 
@@ -1215,10 +1215,10 @@ if st.session_state.step == 5:
                 <tr>
                     <th><span class="dot" style="background-color: #E74C3C;"></span>TRANSMILENIO</th>
                     <th><span class="dot" style="background-color: #9625C7;"></span>COLEGIOS</th>
-                    <th><span class="dot" style="background-color: #05420D;"></span>PARQUES</th>
+                    <th><span class="dot" style="background-color: #178B27;"></span>PARQUES</th>
                     <th><span class="dot" style="background-color: #3A07F3;"></span>SALUD</th>
                     <th><span class="dot" style="background-color: #95A5A6;"></span>ESTRATO</th>
-                    <th><span class="dot" style="background-color: #34495E;"></span>USO POT</th>
+                    <th><span class="dot" style="background-color: #95A5A6;"></span>USO POT</th>
                 </tr>
                 <tr>
                     <td>{num_tm}</td>
