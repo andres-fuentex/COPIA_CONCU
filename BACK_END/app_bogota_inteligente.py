@@ -1115,7 +1115,7 @@ if st.session_state.step == 5:
                     lat=colegios_zona.geometry.y,
                     lon=colegios_zona.geometry.x,
                     mode='markers',
-                    marker=dict(size=6, color='#8E44AD'), # Morado
+                    marker=dict(size=6, color="#9625C7"), # Morado
                     name='Colegios'
                 ))
 
@@ -1136,7 +1136,7 @@ if st.session_state.step == 5:
                     lat=centros.y,
                     lon=centros.x,
                     mode='markers',
-                    marker=dict(size=6, color="#05F024", symbol='circle'), 
+                    marker=dict(size=6, color="#05420D", symbol='circle'), 
                     name='Parques'
                 ))
 
@@ -1164,7 +1164,7 @@ if st.session_state.step == 5:
         except Exception as e:
             html_mapa = f"<div style='padding:20px; background:#f0f0f0;'>Mapa no disponible ({str(e)})</div>"
     
-    # PLANTILLA HTML (TEXTOS Y TABLAS) - TABLA AMPLIADA A 6 COLUMNAS
+    # PLANTILLA HTML MEJORADA CON LEYENDA DE COLORES
     html_report = f"""
     <!DOCTYPE html>
     <html>
@@ -1178,9 +1178,19 @@ if st.session_state.step == 5:
             
             /* Estilo Tabla KPI */
             .kpi-table {{ width: 100%; border-collapse: collapse; margin-top: 15px; }}
-            .kpi-table th {{ background-color: #F4F6F7; padding: 8px; text-align: center; border: 1px solid #ddd; font-size: 11px; color: #777; }}
+            .kpi-table th {{ background-color: #F4F6F7; padding: 8px; text-align: left; border: 1px solid #ddd; font-size: 11px; color: #555; vertical-align: middle; }}
             .kpi-table td {{ padding: 10px; text-align: center; border: 1px solid #ddd; font-size: 16px; font-weight: bold; color: #2C3E50; }}
             
+            /* Círculos de Colores (Leyenda) */
+            .dot {{
+                height: 10px;
+                width: 10px;
+                border-radius: 50%;
+                display: inline-block;
+                margin-right: 5px;
+                border: 1px solid #ccc;
+            }}
+
             .dictamen-box {{ margin-top: 20px; padding: 20px; background: {color_fondo}; color: white; text-align: center; border-radius: 8px; }}
             .security-box {{ margin-top: 10px; padding: 15px; background: #FDEDEC; border-left: 5px solid #C0392B; color: #922B21; }}
         </style>
@@ -1203,12 +1213,12 @@ if st.session_state.step == 5:
             
             <table class="kpi-table">
                 <tr>
-                    <th>ESTACIONES TM</th>
-                    <th>COLEGIOS</th>
-                    <th>PARQUES</th>
-                    <th>HOSPITALES</th>
-                    <th>ESTRATO</th>
-                    <th>USO POT</th>
+                    <th><span class="dot" style="background-color: #E74C3C;"></span>TRANSMILENIO</th>
+                    <th><span class="dot" style="background-color: #9625C7;"></span>COLEGIOS</th>
+                    <th><span class="dot" style="background-color: #05420D;"></span>PARQUES</th>
+                    <th><span class="dot" style="background-color: #3A07F3;"></span>SALUD</th>
+                    <th><span class="dot" style="background-color: #95A5A6;"></span>ESTRATO</th>
+                    <th><span class="dot" style="background-color: #34495E;"></span>USO POT</th>
                 </tr>
                 <tr>
                     <td>{num_tm}</td>
