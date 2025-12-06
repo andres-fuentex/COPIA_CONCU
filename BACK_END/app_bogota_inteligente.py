@@ -100,7 +100,7 @@ def cargar_datasets():
     Retorna un diccionario con los GeoDataFrames normalizados (EPSG:4326).
     """
     # Repositorio oficial de datos procesados
-    BASE_URL = "https://github.com/andres-fuentex/CONCURSO/raw/main/DATOS_LIMPIOS/"
+    BASE_URL = "https://github.com/andres-fuentex/COPIA_CONCU/raw/main/DATOS_LIMPIOS/"
     
     # Mapeo de archivos según la arquitectura de datos definida
     archivos = {
