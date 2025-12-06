@@ -682,7 +682,7 @@ elif st.session_state.step == 5:
 
     # --- SECCIÓN SALUD ---
     st.markdown("---")
-    st.markdown("### 🏥 5. Salud y Bienestar")
+    st.markdown("### 🩺 5. Salud y Bienestar")
     st.markdown("Identificamos la oferta de servicios médicos (IPS, Hospitales, Clínicas) en tu radio cercano.")
 
     col_mapa_salud, col_data_salud = st.columns([2, 1])
