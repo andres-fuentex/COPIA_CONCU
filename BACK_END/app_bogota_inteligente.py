@@ -91,11 +91,11 @@ with col_info4:
 
 with col_info5:
     st.markdown("### 🩺 Salud")
-    st.info("Conoce la oferta del sector selecionado en el area de la salud.")
+    st.info("Prioriza el cuidado. Ubica la red de **Hospitales y Clínicas (IPS)** disponibles para atender urgencias médicas.")
 
 with col_info6:
     st.markdown("### 🌳 Zonas Verdes")
-    st.success("Camina, Corre y conoce el entorno medio ambiental de tu sector")
+    st.success("Respira mejor. Encuentra los **Parques y Pulmones Verdes** ideales para el deporte, el descanso o pasear a tu mascota.")
 
 st.markdown("---")
 
