@@ -735,7 +735,7 @@ elif st.session_state.step == 5:
         else:
             st.error("❌ **Sin Cobertura Inmediata:**\nNo hay hospitales en este radio exacto.")
 
-    # --- SECCIÓN PARQUES ---
+    # --- SECCIÓN PARQUES (POLÍGONOS) ---
     st.markdown("---")
     st.markdown("### 🌳 6. Espacio Público y Verde")
     st.markdown("Zonas de recreación, deporte y descanso al aire libre.")
@@ -745,51 +745,62 @@ elif st.session_state.step == 5:
     with col_mapa_ver:
         fig_v = go.Figure()
         
-        # 1. Zona
+        # 1. Zona de Análisis (Círculo Naranja)
         fig_v.add_trace(go.Scattermapbox(
             lat=list(area_interes.exterior.xy[1]), lon=list(area_interes.exterior.xy[0]),
             mode='lines', fill='toself', name='Zona analizada',
-            fillcolor='rgba(255, 165, 0, 0.1)', line=dict(color='orange', width=2)
+            fillcolor='rgba(255, 165, 0, 0.05)', # Muy transparente
+            line=dict(color='orange', width=2)
         ))
         
-        # 2. Parques (Usamos CENTROIDES para que se vean como puntos)
+        # 2. PARQUES (POLÍGONOS REALES)
         if not parques_zona.empty:
-            # Calculamos el centro del parque para poner el pin
-            centros_parques = parques_zona.geometry.centroid
+            # Importamos json aquí por si acaso
+            import json
+            # Convertimos las geometrías a GeoJSON para pintarlas
+            geojson_parques = json.loads(parques_zona.to_json())
             
-            fig_v.add_trace(go.Scattermapbox(
-                lat=centros_parques.y, lon=centros_parques.x,
-                mode='markers', name='Parques',
-                # Color Verde Esmeralda
-                marker=dict(size=10, color='#2ECC71', symbol='circle'),
-                text=parques_zona.get('nombre_parque', 'Zona Verde'), 
+            # Usamos Choroplethmapbox para pintar el relleno verde
+            fig_v.add_trace(go.Choroplethmapbox(
+                geojson=geojson_parques,
+                locations=parques_zona.index, # ID de enlace
+                z=[1] * len(parques_zona),    # Valor dummy para color uniforme
+                colorscale=[[0, '#27AE60'], [1, '#27AE60']], # Verde 'Jardín'
+                showscale=False,              # Sin barra de colores
+                marker_opacity=0.7,
+                marker_line_width=1,
+                marker_line_color='white',
+                name='Zonas Verdes',
+                # Texto al pasar el mouse
+                text=parques_zona.get('nombre_parque', 'Parque / Zona Verde'),
                 hoverinfo='text'
             ))
             
-        # 3. Tú
+        # 3. Tú (Punto Azul)
         fig_v.add_trace(go.Scattermapbox(
             lat=[st.session_state.punto_lat], lon=[st.session_state.punto_lon],
-            mode='markers', name='Tú', marker=dict(size=12, color='#3498DB')
+            mode='markers', name='Tú', marker=dict(size=14, color='#2980B9', symbol='circle')
         ))
         
         fig_v.update_layout(
             mapbox_style="carto-positron", 
             mapbox_center={"lat": st.session_state.punto_lat, "lon": st.session_state.punto_lon},
-            mapbox_zoom=14, margin={"r":0,"t":0,"l":0,"b":0}, height=350, showlegend=True,
+            mapbox_zoom=14.5, margin={"r":0,"t":0,"l":0,"b":0}, height=350, showlegend=True,
             legend=dict(orientation="h", y=1.1)
         )
-        st.plotly_chart(fig_v, use_container_width=True, key="mapa_parques_unico")
+        st.plotly_chart(fig_v, use_container_width=True, key="mapa_parques_poligonos")
 
     with col_data_ver:
         cant_p = len(parques_zona)
         st.metric("Parques Cercanos", cant_p)
         
+        # TEXTOS MÁS CERCANOS / HUMANOS
         if cant_p > 2:
-            st.success("✅ **Pulmón Urbano:**\nExcelente oferta recreativa.")
+            st.success("✅ **¡Entorno Privilegiado!**\nTienes múltiples opciones para salir a correr, pasear a tu mascota o desconectarte del ruido.")
         elif cant_p > 0:
-            st.warning("⚠️ **Oferta Moderada:**\nTienes algún espacio verde cerca.")
+            st.info("🏃 **Vida Activa:**\nTienes espacios verdes a la mano para tu rutina diaria de ejercicio o descanso.")
         else:
-            st.error("❌ **Déficit Verde:**\nZona dura sin parques inmediatos.")
+            st.error("🏢 **Entorno 100% Urbano:**\nEstás en una zona densa. Tendrás que desplazarte un poco para encontrar zonas verdes amplias.")
 
 
 
