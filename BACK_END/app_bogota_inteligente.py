@@ -1164,10 +1164,15 @@ if st.session_state.step == 5:
         except Exception as e:
             html_mapa = f"<div style='padding:20px; background:#f0f0f0;'>Mapa no disponible ({str(e)})</div>"
     
-    # Generar marca de tiempo actual
+    # Generar marca de tiempo con Zona Horaria de Colombia
     from datetime import datetime
-    ahora = datetime.now()
-    fecha_reporte = ahora.strftime("%d/%m/%Y %H:%M") 
+    import pytz # Librería para zonas horarias
+
+    zona_bogota = pytz.timezone('America/Bogota')
+    
+    ahora_bogota = datetime.now(zona_bogota)
+    
+    fecha_reporte = ahora_bogota.strftime("%d/%m/%Y %I:%M %p") 
 
     # PLANTILLA HTML MEJORADA CON LEYENDA DE COLORES
     html_report = f"""
