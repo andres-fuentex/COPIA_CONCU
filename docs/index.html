@@ -42,14 +42,18 @@
         <p>Radio: <span id="lblRadio" class="dato">--</span> m</p>
         <p>Lat: <span id="lblLat" class="dato">--</span></p>
         <p>Lon: <span id="lblLon" class="dato">--</span></p>
-        <div class="footer">Gemelo Digital 2025 • OpenStreetMap</div>
+        <div class="footer">Gemelo Digital 2025 • Cesium Ion</div>
     </div>
 
     <script>
-        // 1. CAPTURAR DATOS
+        // ==========================================
+        // 🔑 TOKEN CONFIGURADO
+        // ==========================================
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI3NmY0NDc1NS0wNTI1LTQ5MzktODU4Yi04MzEyZDBhNGQ1OGMiLCJpZCI6MzY3NDIwLCJpYXQiOjE3NjUxMjUyNzJ9.rNorYTcXLUMNiocHyuT9VPqrMUdC6yHvbKq8kW-PVds'; 
+        // ==========================================
+
+        // 1. CAPTURAR DATOS URL
         const params = new URLSearchParams(window.location.search);
-        
-        // Valores por defecto (Plaza de Bolívar)
         const lat = parseFloat(params.get('lat')) || 4.5981;
         const lon = parseFloat(params.get('lon')) || -74.0760;
         const radio = parseFloat(params.get('radio')) || 500;
@@ -62,20 +66,12 @@
         document.getElementById('lblLon').innerText = lon.toFixed(4);
 
         try {
-            // 2. INICIAR CESIUM (VERSIÓN LIBRE SIN TOKEN)
+            // 2. INICIAR VISOR
             const viewer = new Cesium.Viewer('cesiumContainer', {
-                // DESACTIVAMOS EL TERRENO QUE PIDE CLAVE
-                terrainProvider: undefined, 
-                
-                // USAMOS OPENSTREETMAP QUE ES GRATIS
-                imageryProvider: new Cesium.OpenStreetMapImageryProvider({
-                    url : 'https://a.tile.openstreetmap.org/'
-                }),
-
-                // Desactivamos widgets innecesarios
+                terrainProvider: Cesium.createWorldTerrain(), // Relieve de montañas
                 animation: false,
                 timeline: false,
-                baseLayerPicker: false, 
+                baseLayerPicker: true, // Permitir cambiar entre Satélite y Calles
                 fullscreenButton: false,
                 homeButton: false,
                 infoBox: false,
@@ -86,8 +82,8 @@
                 creditContainer: document.createElement("div")
             });
 
-            // 3. AGREGAR EDIFICIOS 3D (OSM BUILDINGS - ESTOS SÍ SON GRATIS)
-            viewer.scene.primitives.add(Cesium.createOsmBuildings());
+            // 3. AGREGAR EDIFICIOS 3D
+            const edificios = viewer.scene.primitives.add(Cesium.createOsmBuildings());
 
             // 4. DIBUJAR RADIO (CÍRCULO AMARILLO)
             viewer.entities.add({
@@ -98,8 +94,7 @@
                     material: Cesium.Color.YELLOW.withAlpha(0.3),
                     outline: true,
                     outlineColor: Cesium.Color.YELLOW,
-                    outlineWidth: 3,
-                    height: 0 // Importante para evitar el error de "outlines on terrain"
+                    outlineWidth: 3
                 }
             });
 
@@ -109,7 +104,7 @@
                 point: { pixelSize: 10, color: Cesium.Color.RED, outlineColor: Cesium.Color.WHITE, outlineWidth: 2 }
             });
 
-            // 6. MOVER CÁMARA
+            // 6. VUELO DE CÁMARA
             const altura = radio * 3.5;
             viewer.camera.flyTo({
                 destination: Cesium.Cartesian3.fromDegrees(lon, lat - 0.005, altura),
@@ -118,14 +113,14 @@
                     pitch: Cesium.Math.toRadians(-45.0),
                     roll: 0.0
                 },
-                duration: 2.5
+                duration: 3
             });
 
-            console.log("✅ Mapa cargado con OpenStreetMap (Sin Token)");
+            console.log("✅ Cesium Ion conectado correctamente.");
 
         } catch (error) {
             console.error("❌ Error iniciando Cesium:", error);
-            alert("Error crítico: " + error);
+            alert("Error: Revisa la consola.");
         }
     </script>
 </body>
