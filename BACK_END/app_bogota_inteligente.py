@@ -8,6 +8,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import os
+import urllib.parse
 
 # Configuración de la Página
 st.set_page_config(
@@ -1266,21 +1267,69 @@ if st.session_state.step == 5:
     """
 
    
-    # ZONA DE DESCARGA Y REINICIO
-    col1, col2 = st.columns([2, 1])
+   
+    # ZONA DE DESCARGA Y ACCIONES
+    st.markdown("---")
     
+    # CORRECCIÓN: Definimos 3 anchos para las 3 columnas
+    # [1, 1, 2] significa: Pequeña, Pequeña, Grande (para el botón del Gemelo)
+    col1, col2, col3 = st.columns([1, 1, 2])
+    
+    # 1. Botón Descargar Reporte
     with col1:
-        st.markdown("""<style>div.stDownloadButton > button {background-color: #27AE60 !important; color: white !important; border-color: #1E8449 !important; font-weight: bold !important; width: 100%;}</style>""", unsafe_allow_html=True)
+        # Estilo para botón verde
+        st.markdown("""<style>div.stDownloadButton > button {background-color: #27AE60 !important; color: white !important; width: 100%;}</style>""", unsafe_allow_html=True)
         st.download_button(
-            label="📥 Descargar Ficha Técnica (PDF/HTML)",
+            label="📥 Descargar Ficha",
             data=html_report,
             file_name=f"Ficha_{localidad}.html",
             mime="text/html"
         )
         
+    # 2. Botón Nuevo Análisis
     with col2:
-        if st.button("🔄 Nuevo Análisis"):
+        if st.button("🔄 Reiniciar", use_container_width=True):
             for key in list(st.session_state.keys()):
                 del st.session_state[key]
-            st.session_state.step = 1 # Volver al inicio real
+            st.session_state.step = 1 
             st.rerun()
+
+    # 3. Botón GEMELO DIGITAL (Cesium)
+    with col3:
+        # Importante: Asegúrate de tener 'import urllib.parse' al inicio del script
+        
+        # URL DE TU GITHUB (Ya no localhost)
+        URL_BASE_CESIUM = "https://andres-fuentex.github.io/COPIA_CONCU/index.html" 
+        
+        # Construir Parámetros
+        params_payload = {
+            "lat": st.session_state.punto_lat,
+            "lon": st.session_state.punto_lon,
+            "radio": st.session_state.radio_analisis,
+            "loc": st.session_state.localidad_sel,
+            "altura": "800" # Un poco más alto para mejor vista inicial
+        }
+        
+        query_string = urllib.parse.urlencode(params_payload)
+        url_final = f"{URL_BASE_CESIUM}?{query_string}"
+        
+        # Botón HTML personalizado (Negro/Azul oscuro)
+        st.markdown(f"""
+            <a href="{url_final}" target="_blank" style="text-decoration: none;">
+                <button style="
+                    width: 100%;
+                    background-color: #2C3E50; 
+                    color: white; 
+                    border: none; 
+                    padding: 0.5rem 1rem; /* Ajustado para igualar altura de los otros */
+                    font-size: 16px; 
+                    font-weight: bold; 
+                    border-radius: 8px; 
+                    cursor: pointer;
+                    line-height: 1.6;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                ">
+                    🚀 VER EN 3D (CESIUM)
+                </button>
+            </a>
+        """, unsafe_allow_html=True)
