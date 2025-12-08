@@ -17,11 +17,11 @@
             position: absolute;
             top: 20px;
             left: 20px;
-            background: rgba(20, 20, 20, 0.9);
+            background: rgba(20, 10, 30, 0.95); /* Tono oscuro rosáceo */
             color: #eee;
             padding: 20px;
             border-radius: 12px;
-            border-left: 6px solid #27AE60;
+            border-left: 6px solid #FF69B4; /* Borde Rosa */
             z-index: 999;
             width: 260px;
             box-shadow: 0 8px 16px rgba(0,0,0,0.6);
@@ -29,7 +29,7 @@
         }
         h2 { margin: 0 0 15px 0; font-size: 18px; color: #fff; }
         p { margin: 8px 0; font-size: 14px; color: #ccc; }
-        .dato { font-weight: bold; color: #F1C40F; font-size: 15px; } 
+        .dato { font-weight: bold; color: #FF69B4; font-size: 15px; } /* Texto Rosa */
         .footer { margin-top: 15px; border-top: 1px solid #444; padding-top: 10px; font-size: 11px; color: #888; }
     </style>
 </head>
@@ -46,13 +46,9 @@
     </div>
 
     <script>
-        // ==========================================
-        // 🔑 TOKEN CONFIGURADO (Ya incluí el tuyo aquí)
-        // ==========================================
+        // 🔑 TOKEN CONFIGURADO
         Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI3NmY0NDc1NS0wNTI1LTQ5MzktODU4Yi04MzEyZDBhNGQ1OGMiLCJpZCI6MzY3NDIwLCJpYXQiOjE3NjUxMjUyNzJ9.rNorYTcXLUMNiocHyuT9VPqrMUdC6yHvbKq8kW-PVds'; 
-        // ==========================================
 
-        // 1. CAPTURAR DATOS URL
         const params = new URLSearchParams(window.location.search);
         const lat = parseFloat(params.get('lat')) || 4.5981;
         const lon = parseFloat(params.get('lon')) || -74.0760;
@@ -67,9 +63,8 @@
 
         async function iniciarCesium() {
             try {
-                // 2. INICIAR VISOR (Sintaxis Actualizada 2025)
                 const viewer = new Cesium.Viewer('cesiumContainer', {
-                    terrain: Cesium.Terrain.fromWorldTerrain(), // NUEVA SINTAXIS PARA TERRENO
+                    terrain: Cesium.Terrain.fromWorldTerrain(), 
                     animation: false,
                     timeline: false,
                     baseLayerPicker: true, 
@@ -83,55 +78,58 @@
                     creditContainer: document.createElement("div")
                 });
 
-                // 3. AGREGAR EDIFICIOS 3D (CORRECCIÓN CRÍTICA: USAMOS ASYNC)
-                try {
-                    const edificios = await Cesium.createOsmBuildingsAsync();
-                    viewer.scene.primitives.add(edificios);
-                } catch (e) {
-                    console.log("Advertencia: No se pudieron cargar los edificios 3D", e);
-                }
+                
 
-                // 4. DIBUJAR RADIO (CÍRCULO AMARILLO)
+                // ============================================================
+                // CORRECCIÓN: RADIO ROSA SOBRE TERRENO
+                // ============================================================
                 viewer.entities.add({
                     position: Cesium.Cartesian3.fromDegrees(lon, lat),
                     ellipse: {
                         semiMinorAxis: radio,
                         semiMajorAxis: radio,
-                        material: Cesium.Color.YELLOW.withAlpha(0.3),
+                        // Color Rosa (HotPink) con transparencia
+                        material: Cesium.Color.HOTPINK.withAlpha(0.3),
                         outline: true,
-                        outlineColor: Cesium.Color.YELLOW,
-                        outlineWidth: 3,
-                        height: 0 // Evita conflictos con el terreno
+                        outlineColor: Cesium.Color.DEEPPINK, // Borde más oscuro
+                        outlineWidth: 2,
+                        // IMPORTANTE: Al quitar 'height: 0', Cesium lo pega al terreno automáticamente
                     }
                 });
 
-                // 5. DIBUJAR PUNTO CENTRAL
+                // Punto Central
                 viewer.entities.add({
                     position: Cesium.Cartesian3.fromDegrees(lon, lat),
-                    point: { pixelSize: 10, color: Cesium.Color.RED, outlineColor: Cesium.Color.WHITE, outlineWidth: 2, heightReference: Cesium.HeightReference.CLAMP_TO_GROUND }
+                    point: { 
+                        pixelSize: 12, 
+                        color: Cesium.Color.WHITE, 
+                        outlineColor: Cesium.Color.HOTPINK, 
+                        outlineWidth: 3, 
+                        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND 
+                    }
                 });
 
-                // 6. VUELO DE CÁMARA
-                const altura = radio * 3.5;
+                // ============================================================
+                // CÁMARA MEJORADA (Zoom 2.2 para evitar scroll)
+                // ============================================================
+                const altura = radio * 3.5; 
                 viewer.camera.flyTo({
-                    destination: Cesium.Cartesian3.fromDegrees(lon, lat - 0.005, altura),
+                    destination: Cesium.Cartesian3.fromDegrees(lon, lat - 0.004, altura),
                     orientation: {
                         heading: Cesium.Math.toRadians(0.0),
-                        pitch: Cesium.Math.toRadians(-45.0),
+                        pitch: Cesium.Math.toRadians(-35.0), // Ángulo más natural
                         roll: 0.0
                     },
-                    duration: 3
+                    duration: 3.5
                 });
 
-                console.log("✅ Cesium Ion conectado correctamente (Modo Async).");
+                console.log("✅ Visualización Rosa corregida");
 
             } catch (error) {
-                console.error("❌ Error iniciando Cesium:", error);
-                alert("Error técnico: " + error.message);
+                alert("Error: " + error.message);
             }
         }
 
-        // Ejecutar la función
         iniciarCesium();
     </script>
 </body>
